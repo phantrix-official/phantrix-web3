@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantrix Web3 Super Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Translate Script for Global 100+ Languages -->
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0c0d10',
+                        panel: '#13151b',
+                        card: '#1a1d26',
+                        borderBg: '#282c37',
+                        solana: '#14F195',
+                        solanaPurple: '#9945FF',
+                        phantom: '#ab9ff2',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        success: '#10b981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        body {
+            background-color: #0c0d10;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphic Effects */
+        .glass-panel {
+            background: rgba(19, 21, 27, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(26, 29, 38, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0d10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282c37;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ab9ff2;
+        }
+
+        /* Google Translate Widget Hide Header Bar */
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0px !important; }
+        #google_translate_element { display: none; }
+
+        /* Animation classes */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(171, 159, 242, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(171, 159, 242, 0.4); }
+        }
+        .pulse-glow { animation: pulseGlow 3s infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-obsidian text-slate-200">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-borderBg px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            
+            <!-- Logo & Brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-phantom via-solanaPurple to-solana p-0.5 flex items-center justify-center shadow-lg shadow-phantom/20">
+                    <div class="w-full h-full bg-obsidian rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-bolt text-phantom text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-bold text-xl tracking-tight text-white flex items-center gap-1.5">
+                        PHANTRIX <span class="text-xs px-2 py-0.5 rounded-full bg-phantom/10 text-phantom border border-phantom/30 font-mono">PRO v3.2</span>
+                    </span>
+                    <p class="text-[10px] text-slate-400 font-mono" data-i18n="tagline">MULTI-CHAIN WEB3 TERMINAL</p>
+                </div>
+            </div>
+
+            <!-- Multi-Chain Network Switcher & Controls -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+                
+                <!-- Multi-Chain Network Dropdown -->
+                <div class="relative">
+                    <button id="netSelectBtn" onclick="toggleDropdown('netDropdown')" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-borderBg hover:border-phantom/50 text-xs font-mono transition-all">
+                        <span id="selectedNetIcon" class="w-2 h-2 rounded-full bg-solana animate-pulse"></span>
+                        <span id="selectedNetName" class="font-medium text-slate-200">Solana Mainnet</span>
+                        <span id="selectedNetPing" class="text-[10px] text-slate-500">18ms</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="netDropdown" class="hidden absolute right-0 mt-2 w-56 rounded-xl glass-panel border border-borderBg shadow-2xl z-50 py-1 font-mono text-xs">
+                        <div class="px-3 py-1.5 text-[10px] text-slate-500 uppercase tracking-wider border-b border-borderBg/50">Select Blockchain</div>
+                        <button onclick="selectNetwork('solana', 'Solana Mainnet', '#14F195', '18ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-sun text-solana"></i> Solana Mainnet</span>
+                            <span class="text-[10px] text-emerald-400">Live (18ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('ethereum', 'Ethereum', '#627EEA', '42ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-brands fa-ethereum text-indigo-400"></i> Ethereum</span>
+                            <span class="text-[10px] text-emerald-400">Live (42ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('bitcoin', 'Bitcoin', '#F7931A', '120ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-brands fa-bitcoin text-amber-500"></i> Bitcoin</span>
+                            <span class="text-[10px] text-emerald-400">Live (120ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('base', 'Base Mainnet', '#0052FF', '24ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-cube text-blue-500"></i> Base</span>
+                            <span class="text-[10px] text-emerald-400">Live (24ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('sui', 'Sui Network', '#4CA2FF', '31ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-droplet text-sky-400"></i> Sui</span>
+                            <span class="text-[10px] text-emerald-400">Live (31ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('polygon', 'Polygon POS', '#8247E5', '35ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-draw-polygon text-purple-500"></i> Polygon</span>
+                            <span class="text-[10px] text-emerald-400">Live (35ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('robinhood', 'Robinhood Chain', '#00C805', '15ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-feather text-emerald-400"></i> Robinhood Chain</span>
+                            <span class="text-[10px] text-emerald-400">Live (15ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('arc', 'Arc Chain', '#FF3366', '12ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-archway text-rose-500"></i> Arc Chain</span>
+                            <span class="text-[10px] text-emerald-400">Live (12ms)</span>
+                        </button>
+                        <button onclick="selectNetwork('hyperevm', 'HyperEVM', '#7000FF', '8ms')" class="w-full flex items-center justify-between px-3 py-2 hover:bg-phantom/10 text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-rocket text-purple-400"></i> HyperEVM</span>
+                            <span class="text-[10px] text-emerald-400">Live (8ms)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Currency Selector -->
+                <select id="currencySelect" onchange="changeCurrency(this.value)" class="bg-card border border-borderBg hover:border-phantom/50 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-300 focus:outline-none">
+                    <option value="USD">USD ($)</option>
+                    <option value="IDR">IDR (Rp)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="SOL">SOL (◎)</option>
+                    <option value="BTC">BTC (₿)</option>
+                </select>
+
+                <!-- Native Language Selector Dropdown -->
+                <div class="relative">
+                    <button onclick="toggleDropdown('langDropdown')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-borderBg hover:border-phantom/50 text-xs font-mono text-slate-300 transition-all">
+                        <i class="fa-solid fa-globe text-phantom"></i>
+                        <span id="currentLangLabel">ID 🇮🇩</span>
+                    </button>
+                    <div id="langDropdown" class="hidden absolute right-0 mt-2 w-48 rounded-xl glass-panel border border-borderBg shadow-2xl z-50 py-1 font-mono text-xs max-h-64 overflow-y-auto">
+                        <button onclick="setLanguage('id', 'ID 🇮🇩')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Bahasa Indonesia 🇮🇩</button>
+                        <button onclick="setLanguage('en', 'EN 🇺🇸')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">English 🇺🇸</button>
+                        <button onclick="setLanguage('zh', 'ZH 🇨🇳')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">中文 (简体) 🇨🇳</button>
+                        <button onclick="setLanguage('ja', 'JA 🇯🇵')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">日本語 🇯🇵</button>
+                        <button onclick="setLanguage('ko', 'KO 🇰🇷')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">한국어 🇰🇷</button>
+                        <button onclick="setLanguage('ar', 'AR 🇸🇦')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">العربية 🇸🇦</button>
+                        <button onclick="setLanguage('es', 'ES 🇪🇸')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Español 🇪🇸</button>
+                        <button onclick="setLanguage('ru', 'RU 🇷🇺')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Русский 🇷🇺</button>
+                        <button onclick="setLanguage('fr', 'FR 🇫🇷')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Français 🇫🇷</button>
+                        <button onclick="setLanguage('de', 'DE 🇩🇪')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Deutsch 🇩🇪</button>
+                        <button onclick="setLanguage('pt', 'PT 🇧🇷')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Português 🇧🇷</button>
+                        <button onclick="setLanguage('hi', 'HI 🇮🇳')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">हिन्दी 🇮🇳</button>
+                        <button onclick="setLanguage('tr', 'TR 🇹🇷')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Türkçe 🇹🇷</button>
+                        <button onclick="setLanguage('vi', 'VI 🇻🇳')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">Tiếng Việt 🇻🇳</button>
+                        <button onclick="setLanguage('th', 'TH 🇹🇭')" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10">ไทย 🇹🇭</button>
+                        <div class="border-t border-borderBg my-1"></div>
+                        <button onclick="triggerGoogleTranslate()" class="w-full text-left px-3 py-1.5 hover:bg-phantom/10 text-phantom font-semibold">Global (100+ World Languages)</button>
+                    </div>
+                </div>
+
+                <!-- Wallet Connect Button -->
+                <button id="walletBtn" onclick="connectWallet()" class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-phantom to-solanaPurple text-slate-900 font-bold text-xs shadow-lg shadow-phantom/20 hover:opacity-90 transition-all">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span id="walletBtnText" data-i18n="connectWallet">Connect Phantom</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element"></div>
+
+    <!-- Navigation Tabs Bar -->
+    <nav class="glass-panel border-b border-borderBg px-4 py-2 overflow-x-auto">
+        <div class="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-2 text-xs font-medium font-mono min-w-max">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-chart-line text-phantom"></i> <span data-i18n="navDashboard">Homepage</span>
+            </button>
+            <button onclick="switchTab('screener')" id="tab-screener" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-magnifying-glass text-solana"></i> <span data-i18n="navScreener">Explore Screener</span>
+            </button>
+            <button onclick="switchTab('prediction')" id="tab-prediction" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-scale-balanced text-amber-400"></i> <span data-i18n="navPrediction">Prediction Desk</span>
+            </button>
+            <button onclick="switchTab('perps')" id="tab-perps" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-fire text-rose-500"></i> <span data-i18n="navPerps">100x Perps</span>
+            </button>
+            <button onclick="switchTab('rwa')" id="tab-rwa" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-building-columns text-sky-400"></i> <span data-i18n="navRwa">RWA Stocks</span>
+            </button>
+            <button onclick="switchTab('swap')" id="tab-swap" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-right-left text-emerald-400"></i> <span data-i18n="navSwap">Swap & Bridge</span>
+            </button>
+            <button onclick="switchTab('sentinel')" id="tab-sentinel" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-shield-halved text-purple-400"></i> <span data-i18n="navSentinel">AI Auditor</span>
+            </button>
+            <button onclick="switchTab('treasury')" id="tab-treasury" class="tab-btn px-3.5 py-2 rounded-xl flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-vault text-amber-300"></i> <span data-i18n="navTreasury">Protocol Treasury</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- TAB 1: DASHBOARD / HOMEPAGE -->
+        <div id="module-dashboard" class="tab-content space-y-6">
+            
+            <!-- Top Portfolio Banner -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Net Worth Card -->
+                <div class="lg:col-span-2 glass-panel rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between border border-borderBg">
+                    <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-phantom/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-mono text-slate-400 tracking-wider uppercase" data-i18n="totalPortfolio">TOTAL NET WORTH</span>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <i class="fa-solid fa-arrow-trend-up"></i> +14.2% 24h
+                            </span>
+                        </div>
+                        <div class="flex items-baseline gap-3">
+                            <h1 id="netWorthDisplay" class="text-3xl sm:text-4xl font-bold font-mono text-white">$142,850.40</h1>
+                            <span class="text-xs text-slate-400 font-mono">≈ 743.8 SOL</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Buttons -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                        <button onclick="switchTab('swap')" class="glass-card hover:border-phantom/50 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-mono text-slate-200 transition-all">
+                            <i class="fa-solid fa-paper-plane text-phantom"></i> <span data-i18n="btnSend">Send / Pay</span>
+                        </button>
+                        <button onclick="showReceiveModal()" class="glass-card hover:border-phantom/50 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-mono text-slate-200 transition-all">
+                            <i class="fa-solid fa-qrcode text-solana"></i> <span data-i18n="btnReceive">Receive</span>
+                        </button>
+                        <button onclick="switchTab('swap')" class="glass-card hover:border-phantom/50 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-mono text-slate-200 transition-all">
+                            <i class="fa-solid fa-rotate text-amber-400"></i> <span data-i18n="btnInstantSwap">Swap</span>
+                        </button>
+                        <button onclick="triggerStakeModal()" class="glass-card hover:border-phantom/50 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-mono text-slate-200 transition-all">
+                            <i class="fa-solid fa-coins text-purple-400"></i> <span>Stake (8.2%)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Asset Allocation Donut Chart -->
+                <div class="glass-panel rounded-2xl p-6 border border-borderBg flex flex-col justify-between">
+                    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-4" data-i18n="assetAllocation">ASSET ALLOCATION</h3>
+                    <div class="relative h-44 w-full flex items-center justify-center">
+                        <canvas id="allocationChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono mt-4 pt-3 border-t border-borderBg">
+                        <div>
+                            <p class="text-slate-400">Solana</p>
+                            <p class="font-bold text-solana">58%</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">EVM</p>
+                            <p class="font-bold text-indigo-400">27%</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">RWA / BTC</p>
+                            <p class="font-bold text-amber-400">15%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trending Coins & Live Feed Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Trending Tokens -->
+                <div class="glass-panel rounded-2xl p-5 border border-borderBg space-y-4">
+                    <div class="flex items-center justify-between border-b border-borderBg pb-3">
+                        <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-fire-flame-curved text-rose-500"></i> <span data-i18n="trendingTokens">Trending Tokens</span>
+                        </h3>
+                        <button onclick="switchTab('screener')" class="text-xs font-mono text-phantom hover:underline" data-i18n="viewAll">View All &rarr;</button>
+                    </div>
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50 hover:border-phantom/30 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-solana/20 text-solana flex items-center justify-center font-bold">SOL</div>
+                                <div>
+                                    <p class="font-bold text-white">Solana</p>
+                                    <p class="text-[10px] text-slate-400">Layer 1</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-white">$192.45</p>
+                                <p class="text-emerald-400 text-[10px]">+8.4%</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50 hover:border-phantom/30 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">ETH</div>
+                                <div>
+                                    <p class="font-bold text-white">Ethereum</p>
+                                    <p class="text-[10px] text-slate-400">Smart Contract</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-white">$3,420.10</p>
+                                <p class="text-emerald-400 text-[10px]">+3.2%</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50 hover:border-phantom/30 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">BTC</div>
+                                <div>
+                                    <p class="font-bold text-white">Bitcoin</p>
+                                    <p class="text-[10px] text-slate-400">Store of Value</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-white">$68,900.00</p>
+                                <p class="text-rose-400 text-[10px]">-0.8%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- On-Chain Live Activity Timeline -->
+                <div class="glass-panel rounded-2xl p-5 border border-borderBg space-y-4">
+                    <div class="flex items-center justify-between border-b border-borderBg pb-3">
+                        <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-phantom"></i> <span data-i18n="recentActivity">On-Chain Activity</span>
+                        </h3>
+                        <span class="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Sync
+                        </span>
+                    </div>
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-arrow-up-right text-emerald-400"></i>
+                                <div>
+                                    <p class="text-white">Swapped SOL for USDC</p>
+                                    <p class="text-[10px] text-slate-400">2 mins ago • Solana</p>
+                                </div>
+                            </div>
+                            <span class="text-emerald-400 font-bold">+250.00 USDC</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-gavel text-amber-400"></i>
+                                <div>
+                                    <p class="text-white">Bet 'YES' on SOL $200 Prediction</p>
+                                    <p class="text-[10px] text-slate-400">14 mins ago • Prediction Desk</p>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-bold">$100.00</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-card border border-borderBg/50">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-chart-line text-purple-400"></i>
+                                <div>
+                                    <p class="text-white">Long NVDA.RWA Stock 10x</p>
+                                    <p class="text-[10px] text-slate-400">1 hr ago • 100x Perps</p>
+                                </div>
+                            </div>
+                            <span class="text-purple-400 font-bold">$500.00 Margin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: EXPLORE MARKET SCREENER -->
+        <div id="module-screener" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 glass-panel p-4 rounded-2xl border border-borderBg">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-solana"></i> Multi-Chain Token Screener
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono">Real-time DEX price feeds across all connected networks</p>
+                </div>
+                <!-- Search & Filters -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="text" id="screenerSearch" onkeyup="filterScreener()" placeholder="Search token or CA..." class="w-full sm:w-64 bg-card border border-borderBg rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-phantom">
+                    <select id="screenerFilter" onchange="filterScreener()" class="bg-card border border-borderBg rounded-xl px-3 py-1.5 text-xs font-mono text-slate-300">
+                        <option value="ALL">All Categories</option>
+                        <option value="SOL">Solana Ecosystem</option>
+                        <option value="MEME">Meme Coins</option>
+                        <option value="AI">AI Tokens</option>
+                        <option value="DEFI">DeFi Protocols</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Screener Table -->
+            <div class="glass-panel rounded-2xl border border-borderBg overflow-x-auto">
+                <table class="w-full text-left font-mono text-xs text-slate-300">
+                    <thead class="bg-card border-b border-borderBg text-slate-400 uppercase text-[10px]">
+                        <tr>
+                            <th class="p-3.5">Asset</th>
+                            <th class="p-3.5">Price</th>
+                            <th class="p-3.5">24h Change</th>
+                            <th class="p-3.5">24h Volume</th>
+                            <th class="p-3.5">Liquidity</th>
+                            <th class="p-3.5">Chain</th>
+                            <th class="p-3.5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="screenerTableBody" class="divide-y divide-borderBg/50">
+                        <!-- Dynamic Rows loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: PREDICTION MARKET DESK -->
+        <div id="module-prediction" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-5 rounded-2xl border border-borderBg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-amber-400"></i> Polymarket-Style Binary Prediction
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono">Wager on crypto milestones, macro economy, and AI events with 0.25% fee routing to Treasury.</p>
+                </div>
+                <div class="flex gap-2 font-mono text-xs">
+                    <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active Markets: 18</span>
+                    <span class="px-3 py-1.5 rounded-xl bg-phantom/10 text-phantom border border-phantom/20">Total Volume: $1.4M</span>
+                </div>
+            </div>
+
+            <!-- Prediction Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="predictionGrid">
+                <!-- Dynamically Generated Cards -->
+            </div>
+        </div>
+
+        <!-- TAB 4: 100X PERPETUALS TRADING DESK -->
+        <div id="module-perps" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                
+                <!-- Main Candlestick Chart Canvas (3 cols) -->
+                <div class="lg:col-span-3 glass-panel rounded-2xl p-5 border border-borderBg space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-borderBg pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-white text-base font-mono">SOL-PERP</span>
+                            <span class="text-emerald-400 font-mono text-sm font-bold">$192.45</span>
+                            <span class="text-xs text-slate-400 font-mono">24h High: $198.20 | Low: $182.10</span>
+                        </div>
+                        <!-- Chart Timeframes -->
+                        <div class="flex gap-1 font-mono text-[11px]">
+                            <button class="px-2 py-1 rounded bg-phantom/20 text-phantom font-bold">1m</button>
+                            <button class="px-2 py-1 rounded hover:bg-card text-slate-400">5m</button>
+                            <button class="px-2 py-1 rounded hover:bg-card text-slate-400">15m</button>
+                            <button class="px-2 py-1 rounded hover:bg-card text-slate-400">1h</button>
+                            <button class="px-2 py-1 rounded hover:bg-card text-slate-400">4h</button>
+                        </div>
+                    </div>
+
+                    <!-- HTML5 Canvas Candlestick Chart -->
+                    <div class="relative h-80 w-full bg-card/40 rounded-xl overflow-hidden border border-borderBg/50 flex items-center justify-center">
+                        <canvas id="perpsCanvas" class="w-full h-full"></canvas>
+                    </div>
+
+                    <!-- Open Positions Table -->
+                    <div class="border-t border-borderBg pt-4">
+                        <h4 class="text-xs font-mono font-bold text-slate-300 uppercase mb-3">Your Open Positions</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left font-mono text-xs text-slate-300">
+                                <thead class="bg-card text-slate-400 uppercase text-[10px]">
+                                    <tr>
+                                        <th class="p-2">Market</th>
+                                        <th class="p-2">Type</th>
+                                        <th class="p-2">Size</th>
+                                        <th class="p-2">Entry</th>
+                                        <th class="p-2">Mark</th>
+                                        <th class="p-2">PnL</th>
+                                        <th class="p-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-borderBg/50">
+                                    <tr>
+                                        <td class="p-2 font-bold text-solana">SOL-PERP</td>
+                                        <td class="p-2 text-emerald-400 font-bold">LONG 25x</td>
+                                        <td class="p-2">$2,500</td>
+                                        <td class="p-2">$188.50</td>
+                                        <td class="p-2">$192.45</td>
+                                        <td class="p-2 text-emerald-400 font-bold">+$261.90 (+104%)</td>
+                                        <td class="p-2 text-right">
+                                            <button onclick="closePerpPosition()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-400 text-[10px] hover:bg-rose-500/40">Close</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Perps Execution Panel (1 col) -->
+                <div class="glass-panel rounded-2xl p-5 border border-borderBg flex flex-col justify-between space-y-4 font-mono">
+                    <div class="space-y-4">
+                        <div class="flex rounded-xl bg-card p-1 border border-borderBg">
+                            <button id="perpLongBtn" onclick="setPerpType('LONG')" class="flex-1 py-2 rounded-lg font-bold text-xs bg-emerald-500 text-slate-950">LONG</button>
+                            <button id="perpShortBtn" onclick="setPerpType('SHORT')" class="flex-1 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white">SHORT</button>
+                        </div>
+
+                        <!-- Leverage Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-400">Leverage:</span>
+                                <span id="leverageVal" class="text-phantom font-bold">25x</span>
+                            </div>
+                            <input type="range" id="leverageRange" min="1" max="100" value="25" oninput="document.getElementById('leverageVal').innerText = this.value + 'x'" class="w-full accent-phantom">
+                            <div class="flex justify-between text-[10px] text-slate-500">
+                                <span>1x</span>
+                                <span>25x</span>
+                                <span>50x</span>
+                                <span>100x</span>
+                            </div>
+                        </div>
+
+                        <!-- Margin Amount Input -->
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-400 uppercase">Margin Collateral ($)</label>
+                            <input type="number" id="perpMargin" value="100" class="w-full bg-card border border-borderBg rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-phantom">
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="p-3 rounded-xl bg-card border border-borderBg/50 space-y-2 text-[11px]">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Position Size:</span>
+                                <span id="perpPosSize" class="text-white font-bold">$2,500.00</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Liq. Price:</span>
+                                <span class="text-rose-400 font-bold">$181.20</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Trading Fee (0.05%):</span>
+                                <span class="text-slate-300">$1.25</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="executePerpOrder()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-solana text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-90">
+                        EXECUTE PERP ORDER
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: RWA TOKENIZED STOCKS -->
+        <div id="module-rwa" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-5 rounded-2xl border border-borderBg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-sky-400"></i> Tokenized Real World Assets (RWA)
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono">Trade global stock equities, gold, and commodities 24/7 on-chain with instant settlement.</p>
+                </div>
+                <div class="flex gap-2 font-mono text-xs">
+                    <span class="px-3 py-1.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">Robinhood RWA Vault: Active</span>
+                </div>
+            </div>
+
+            <!-- RWA Stock Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="rwaGrid">
+                <!-- Dynamically Generated via JS -->
+            </div>
+        </div>
+
+        <!-- TAB 6: UNIVERSAL DEX SWAP & BRIDGE -->
+        <div id="module-swap" class="tab-content hidden space-y-6">
+            <div class="max-w-md mx-auto glass-panel rounded-2xl p-6 border border-borderBg space-y-5 font-mono">
+                <div class="flex items-center justify-between border-b border-borderBg pb-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-right-left text-emerald-400"></i> Universal Swap & Bridge
+                    </h3>
+                    <button onclick="toggleSwapSlippage()" class="text-xs text-slate-400 hover:text-phantom">
+                        <i class="fa-solid fa-gear"></i> <span id="slippageLabel">0.5%</span>
+                    </button>
+                </div>
+
+                <!-- Pay Input -->
+                <div class="p-3.5 rounded-xl bg-card border border-borderBg space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>You Pay</span>
+                        <span>Balance: 14.8 SOL</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <input type="number" id="swapPayAmt" value="1.0" oninput="calcSwapQuote()" class="w-full bg-transparent text-xl font-bold text-white focus:outline-none">
+                        <button class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-obsidian border border-borderBg text-xs font-bold text-solana">
+                            <i class="fa-solid fa-sun"></i> SOL
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Swap Swap Icon Arrow -->
+                <div class="flex justify-center -my-2 z-10 relative">
+                    <button onclick="reverseSwapTokens()" class="w-8 h-8 rounded-full bg-card border border-borderBg flex items-center justify-center text-phantom hover:border-phantom transition-all shadow-md">
+                        <i class="fa-solid fa-arrow-down-up-lock text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Receive Input -->
+                <div class="p-3.5 rounded-xl bg-card border border-borderBg space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>You Receive (Est.)</span>
+                        <span>Balance: 0.00 USDC</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <input type="number" id="swapReceiveAmt" value="192.45" readonly class="w-full bg-transparent text-xl font-bold text-emerald-400 focus:outline-none">
+                        <button class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-obsidian border border-borderBg text-xs font-bold text-sky-400">
+                            <i class="fa-solid fa-dollar-sign"></i> USDC
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quote Details -->
+                <div class="p-3 rounded-xl bg-obsidian/50 border border-borderBg/50 text-[11px] space-y-1 text-slate-400">
+                    <div class="flex justify-between">
+                        <span>Best Route:</span>
+                        <span class="text-slate-200">Jupiter Router v6</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Protocol Fee (0.3%):</span>
+                        <span class="text-slate-200">$0.57 → Protocol Treasury</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Price Impact:</span>
+                        <span class="text-emerald-400">&lt; 0.01%</span>
+                    </div>
+                </div>
+
+                <button onclick="executeSwap()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-phantom via-solanaPurple to-solana text-slate-950 font-bold text-xs shadow-lg shadow-phantom/20 hover:opacity-90">
+                    SWAP NOW
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 7: AI SENTINEL CONTRACT AUDITOR -->
+        <div id="module-sentinel" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-5 rounded-2xl border border-borderBg space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-purple-400"></i> AI Sentinel Smart Contract Auditor
+                        </h2>
+                        <p class="text-xs text-slate-400 font-mono">Scan any Solana or EVM token address for security vulnerabilities, honeypot code, and authority risks.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="contractScanInput" placeholder="Paste Token Contract Address (CA)..." class="flex-1 bg-card border border-borderBg rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-phantom">
+                    <button onclick="runAuditScan()" class="px-5 py-2.5 rounded-xl bg-phantom text-slate-950 font-bold text-xs font-mono hover:opacity-90">
+                        ANALYZE CA
+                    </button>
+                </div>
+            </div>
+
+            <!-- Audit Result Card -->
+            <div id="auditResultCard" class="hidden glass-panel p-6 rounded-2xl border border-borderBg space-y-6 font-mono">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-borderBg pb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="auditTokenName">SOLANA MEME TOKEN (SAMPLE)</h3>
+                        <p class="text-xs text-slate-400" id="auditAddress">CA: 5uPoJyq4bceJxaCWrx9q5zqvUJ47XRhQ9kgciojxH2dK</p>
+                    </div>
+                    <div class="px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center">
+                        <span class="text-[10px] uppercase text-slate-400 block">SAFETY SCORE</span>
+                        <span class="text-2xl font-bold">94 / 100</span>
+                    </div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div class="p-3 rounded-xl bg-card border border-borderBg flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        <div>
+                            <p class="font-bold text-white">Mint Authority</p>
+                            <p class="text-[10px] text-slate-400">Disabled (Revoked)</p>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-card border border-borderBg flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        <div>
+                            <p class="font-bold text-white">Freeze Authority</p>
+                            <p class="text-[10px] text-slate-400">Disabled (Revoked)</p>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-card border border-borderBg flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        <div>
+                            <p class="font-bold text-white">Honeypot Scan</p>
+                            <p class="text-[10px] text-slate-400">PASSED (100% Sellable)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: PROTOCOL TREASURY DASHBOARD -->
+        <div id="module-treasury" class="tab-content hidden space-y-6">
+            
+            <!-- Owner Address Gate Status Banner -->
+            <div class="glass-panel p-5 rounded-2xl border border-borderBg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold block mb-1">
+                        <i class="fa-solid fa-lock"></i> PROTOCOL TREASURY ACCESS
+                    </span>
+                    <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+                        Owner Wallet: <span class="text-solana text-xs sm:text-sm">5uPo...H2dK</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 font-mono mt-1">Accumulating swap fees (0.3%), perps fees (0.05%), and prediction fees (0.25%).</p>
+                </div>
+
+                <!-- Simulation Toggle Switch for Demo/Testing -->
+                <div class="flex items-center gap-3 bg-card p-2 rounded-xl border border-borderBg font-mono text-xs">
+                    <span class="text-slate-400">Role View:</span>
+                    <button id="toggleOwnerBtn" onclick="toggleOwnerRole()" class="px-3 py-1 rounded-lg bg-phantom/20 text-phantom font-bold hover:bg-phantom/30 transition-all">
+                        Simulate Owner
+                    </button>
+                </div>
+            </div>
+
+            <!-- Revenue Breakdown Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 font-mono">
+                <div class="glass-panel p-5 rounded-2xl border border-borderBg space-y-2">
+                    <p class="text-xs text-slate-400 uppercase">Total Accumulated Fees</p>
+                    <p class="text-2xl font-bold text-solana" id="treasuryTotal">$48,290.15</p>
+                    <p class="text-[10px] text-slate-500">Across 9 Active Mainnets</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border border-borderBg space-y-2">
+                    <p class="text-xs text-slate-400 uppercase">Swap Engine Revenue (0.3%)</p>
+                    <p class="text-2xl font-bold text-phantom">$31,120.00</p>
+                    <p class="text-[10px] text-slate-500">From Jupiter & EVM DEXs</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border border-borderBg space-y-2">
+                    <p class="text-xs text-slate-400 uppercase">Perps & Predictions Revenue</p>
+                    <p class="text-2xl font-bold text-amber-400">$17,170.15</p>
+                    <p class="text-[10px] text-slate-500">On-chain settlement</p>
+                </div>
+            </div>
+
+            <!-- Gated Owner Actions Panel -->
+            <div id="treasuryOwnerActions" class="glass-panel p-6 rounded-2xl border border-phantom/30 space-y-4 font-mono">
+                <div class="flex items-center justify-between border-b border-borderBg pb-3">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-key text-phantom"></i> Owner Management Controls
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">AUTHORIZED</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="withdrawTreasuryFees()" class="py-3 rounded-xl bg-solana text-slate-950 font-bold text-xs hover:opacity-90">
+                        WITHDRAW TREASURY REVENUE TO OWNER WALLET
+                    </button>
+                    <button onclick="updateFeeRates()" class="py-3 rounded-xl bg-card border border-borderBg text-slate-200 font-bold text-xs hover:border-phantom">
+                        UPDATE PROTOCOL FEE STRUCTURE
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-borderBg mt-12 py-6 px-4 font-mono text-xs text-slate-500 text-center">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© 2026 PHANTRIX Web3 Terminal. Built for Solana & Multi-Chain Ecosystems.</p>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="hover:text-phantom"><i class="fa-brands fa-twitter"></i> Twitter</a>
+                <a href="#" class="hover:text-phantom"><i class="fa-brands fa-discord"></i> Discord</a>
+                <a href="#" class="hover:text-phantom"><i class="fa-solid fa-code"></i> GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Receive QR Modal -->
+    <div id="receiveModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel p-6 rounded-2xl max-w-sm w-full border border-borderBg font-mono text-center space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-white text-sm">Deposit SOL / Tokens</h3>
+                <button onclick="closeReceiveModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 bg-white rounded-xl inline-block mx-auto">
+                <!-- QR Placeholder -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=5uPoJyq4bceJxaCWrx9q5zqvUJ47XRhQ9kgciojxH2dK" alt="QR Code" class="w-36 h-36">
+            </div>
+            <p class="text-[10px] text-slate-400 break-all bg-card p-2 rounded-xl border border-borderBg">5uPoJyq4bceJxaCWrx9q5zqvUJ47XRhQ9kgciojxH2dK</p>
+            <button onclick="copyDepositAddr()" class="w-full py-2 rounded-xl bg-phantom text-slate-950 font-bold text-xs">
+                Copy Deposit Address
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 glass-panel border border-phantom/50 px-4 py-3 rounded-xl font-mono text-xs text-white shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-solana text-base"></i>
+        <span id="toastMsg">Action executed successfully!</span>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Global App State
+        let currentWallet = null;
+        const HARDCODED_OWNER = '5uPoJyq4bceJxaCWrx9q5zqvUJ47XRhQ9kgciojxH2dK';
+        let isOwnerSimulated = true;
+        let selectedNetwork = 'solana';
+        let currentCurrency = 'USD';
+        let currencyMultiplier = 1.0;
+        let perpType = 'LONG';
+
+        // i18n Dictionaries
+        const translations = {
+            id: {
+                tagline: "MULTI-CHAIN WEB3 TERMINAL",
+                connectWallet: "Hubungkan Phantom",
+                navDashboard: "Beranda",
+                navScreener: "Screener Pasar",
+                navPrediction: "Pasar Prediksi",
+                navPerps: "Perps 100x",
+                navRwa: "Saham RWA",
+                navSwap: "Swap & Bridge",
+                navSentinel: "Auditor AI",
+                navTreasury: "Kas Protokol",
+                totalPortfolio: "TOTAL PORTOFOLIO",
+                btnSend: "Kirim",
+                btnReceive: "Terima",
+                btnInstantSwap: "Tukar",
+                assetAllocation: "ALOKASI ASET",
+                trendingTokens: "Koin Trending",
+                recentActivity: "Aktivitas On-Chain",
+                viewAll: "Lihat Semua →"
+            },
+            en: {
+                tagline: "MULTI-CHAIN WEB3 TERMINAL",
+                connectWallet: "Connect Phantom",
+                navDashboard: "Homepage",
+                navScreener: "Explore Screener",
+                navPrediction: "Prediction Desk",
+                navPerps: "100x Perps",
+                navRwa: "RWA Stocks",
+                navSwap: "Swap & Bridge",
+                navSentinel: "AI Auditor",
+                navTreasury: "Protocol Treasury",
+                totalPortfolio: "TOTAL NET WORTH",
+                btnSend: "Send / Pay",
+                btnReceive: "Receive",
+                btnInstantSwap: "Swap",
+                assetAllocation: "ASSET ALLOCATION",
+                trendingTokens: "Trending Tokens",
+                recentActivity: "On-Chain Activity",
+                viewAll: "View All →"
+            },
+            zh: {
+                tagline: "多链 WEB3 终端",
+                connectWallet: "连接 Phantom 钱包",
+                navDashboard: "首页",
+                navScreener: "市场筛选",
+                navPrediction: "预测市场",
+                navPerps: "100倍永续",
+                navRwa: "RWA 股票",
+                navSwap: "兑换 & 跨链",
+                navSentinel: "AI 审计",
+                navTreasury: "协议金库",
+                totalPortfolio: "总资产净值",
+                btnSend: "发送",
+                btnReceive: "接收",
+                btnInstantSwap: "闪兑",
+                assetAllocation: "资产配置",
+                trendingTokens: "热门代币",
+                recentActivity: "链上活动",
+                viewAll: "查看全部 →"
+            },
+            ja: {
+                tagline: "マルチチェーン WEB3 ターミナル",
+                connectWallet: "Phantom 接続",
+                navDashboard: "ホーム",
+                navScreener: "スクリーナー",
+                navPrediction: "予測デスク",
+                navPerps: "100倍 Perps",
+                navRwa: "RWA 株式",
+                navSwap: "スワップ",
+                navSentinel: "AI 監査",
+                navTreasury: "トレジャリー",
+                totalPortfolio: "总资产净值",
+                btnSend: "送信",
+                btnReceive: "受信",
+                btnInstantSwap: "スワップ",
+                assetAllocation: "資産配分",
+                trendingTokens: "トレンド",
+                recentActivity: "アクティビティ",
+                viewAll: "すべて見る →"
+            },
+            ar: {
+                tagline: "طرفية WEB3 متعددة السلاسل",
+                connectWallet: "ربط محفظة Phantom",
+                navDashboard: "الرئيسية",
+                navScreener: "فاحص السوق",
+                navPrediction: "منصة التوقعات",
+                navPerps: "عقود 100x",
+                navRwa: "أسهم RWA",
+                navSwap: "المبادلة والجسور",
+                navSentinel: "المدقق الذكي",
+                navTreasury: "خزينة البروتوكول",
+                totalPortfolio: "إجمالي قيمة المحفظة",
+                btnSend: "إرسال",
+                btnReceive: "استلام",
+                btnInstantSwap: "تبديل",
+                assetAllocation: "توزيع الأصول",
+                trendingTokens: "العملات الشائعة",
+                recentActivity: "نشاط السلسلة",
+                viewAll: "عرض الكل ←"
+            }
+        };
+
+        window.addEventListener('load', () => {
+            initAllocationChart();
+            initPerpsCanvas();
+            renderScreenerTable();
+            renderPredictionDesk();
+            renderRwaGrid();
+            
+            // Check stored language
+            const storedLang = localStorage.getItem('phantrix_lang') || 'id';
+            const langLabel = localStorage.getItem('phantrix_lang_label') || 'ID 🇮🇩';
+            setLanguage(storedLang, langLabel);
+        });
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'bg-card', 'text-white'));
+            
+            const selectedTab = document.getElementById(`module-${tabId}`);
+            const selectedBtn = document.getElementById(`tab-${tabId}`);
+            
+            if (selectedTab) selectedTab.classList.remove('hidden');
+            if (selectedBtn) selectedBtn.classList.add('active', 'bg-card', 'text-white');
+        }
+
+        // Toggle UI Dropdowns
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdowns when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.closest('#netSelectBtn') && !event.target.closest('#netDropdown')) {
+                document.getElementById('netDropdown')?.classList.add('hidden');
+            }
+            if (!event.target.closest('#langDropdown') && !event.target.closest('button')) {
+                document.getElementById('langDropdown')?.classList.add('hidden');
+            }
+        }
+
+        // Select Multi-Chain Network
+        function selectNetwork(id, name, color, ping) {
+            selectedNetwork = id;
+            document.getElementById('selectedNetName').innerText = name;
+            document.getElementById('selectedNetIcon').style.backgroundColor = color;
+            document.getElementById('selectedNetPing').innerText = ping;
+            document.getElementById('netDropdown').classList.add('hidden');
+            showToast(`Switched network to ${name}`);
+        }
+
+        // Multi-Wallet Connection Engine
+        async function connectWallet() {
+            try {
+                if (window.solana && window.solana.isPhantom) {
+                    const resp = await window.solana.connect();
+                    currentWallet = resp.publicKey.toString();
+                    updateWalletUI(currentWallet);
+                    showToast('Phantom Wallet Connected!');
+                } else {
+                    // Fallback simulated connect
+                    currentWallet = HARDCODED_OWNER;
+                    updateWalletUI(currentWallet);
+                    showToast('Demo Wallet Connected!');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to connect wallet');
+            }
+        }
+
+        function updateWalletUI(addr) {
+            const truncated = addr.substring(0, 4) + '...' + addr.substring(addr.length - 4);
+            document.getElementById('walletBtnText').innerText = truncated;
+        }
+
+        // Currency Selector
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            switch(curr) {
+                case 'IDR': currencyMultiplier = 15800; break;
+                case 'EUR': currencyMultiplier = 0.92; break;
+                case 'SOL': currencyMultiplier = 1 / 192.45; break;
+                case 'BTC': currencyMultiplier = 1 / 68900; break;
+                default: currencyMultiplier = 1.0;
+            }
+            updateCurrencyDisplays();
+            showToast(`Currency changed to ${curr}`);
+        }
+
+        function updateCurrencyDisplays() {
+            const baseVal = 142850.40;
+            const converted = baseVal * currencyMultiplier;
+            let formatted = '';
+            if (currentCurrency === 'IDR') formatted = 'Rp ' + converted.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+            else if (currentCurrency === 'EUR') formatted = '€' + converted.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+            else if (currentCurrency === 'SOL') formatted = '◎ ' + converted.toFixed(2);
+            else if (currentCurrency === 'BTC') formatted = '₿ ' + converted.toFixed(4);
+            else formatted = '$' + converted.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            
+            document.getElementById('netWorthDisplay').innerText = formatted;
+        }
+
+        // Language Switcher
+        function setLanguage(lang, label) {
+            localStorage.setItem('phantrix_lang', lang);
+            localStorage.setItem('phantrix_lang_label', label);
+            document.getElementById('currentLangLabel').innerText = label;
+            document.getElementById('langDropdown').classList.add('hidden');
+
+            // Set RTL if Arabic
+            if (lang === 'ar') {
+                document.dir = 'rtl';
+            } else {
+                document.dir = 'ltr';
+            }
+
+            // Apply translations if dictionary exists
+            const dict = translations[lang] || translations['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) el.innerText = dict[key];
+            });
+        }
+
+        function triggerGoogleTranslate() {
+            document.getElementById('langDropdown').classList.add('hidden');
+            const element = document.getElementById('google_translate_element');
+            if (element) {
+                showToast('Google Neural Translate Activated for 100+ Languages');
+            }
+        }
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+        }
+
+        // Asset Allocation Donut Chart
+        function initAllocationChart() {
+            const ctx = document.getElementById('allocationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Solana Ecosystem', 'EVM Chains', 'RWA & BTC'],
+                    datasets: [{
+                        data: [58, 27, 15],
+                        backgroundColor: ['#14F195', '#627EEA', '#F7931A'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '75%'
+                }
+            });
+        }
+
+        // Render Screener Table
+        const screenerData = [
+            { name: 'Solana', symbol: 'SOL', price: 192.45, change: 8.4, volume: '840M', liq: '120M', chain: 'SOL' },
+            { name: 'Jito SOL', symbol: 'JitoSOL', price: 214.10, change: 8.9, volume: '140M', liq: '45M', chain: 'SOL' },
+            { name: 'Dogwifhat', symbol: 'WIF', price: 2.85, change: 14.2, volume: '310M', liq: '38M', chain: 'SOL', cat: 'MEME' },
+            { name: 'Render', symbol: 'RENDER', price: 6.12, change: -2.1, volume: '95M', liq: '22M', chain: 'SOL', cat: 'AI' },
+            { name: 'Jupiter', symbol: 'JUP', price: 1.15, change: 4.5, volume: '180M', liq: '60M', chain: 'SOL', cat: 'DEFI' },
+            { name: 'Base Brett', symbol: 'BRETT', price: 0.095, change: 18.1, volume: '75M', liq: '15M', chain: 'BASE', cat: 'MEME' },
+            { name: 'Sui Network', symbol: 'SUI', price: 1.82, change: 11.0, volume: '220M', liq: '50M', chain: 'SUI' }
+        ];
+
+        function renderScreenerTable() {
+            const tbody = document.getElementById('screenerTableBody');
+            tbody.innerHTML = '';
+            screenerData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-card/50 transition-all';
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold text-white flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-phantom/20 flex items-center justify-center text-[10px] text-phantom">${item.symbol[0]}</div>
+                        ${item.name} <span class="text-slate-500 font-normal">(${item.symbol})</span>
+                    </td>
+                    <td class="p-3.5 font-bold">$${item.price.toFixed(2)}</td>
+                    <td class="p-3.5 ${item.change >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${item.change >= 0 ? '+' : ''}${item.change}%</td>
+                    <td class="p-3.5">$${item.volume}</td>
+                    <td class="p-3.5">$${item.liq}</td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-borderBg text-[10px] text-slate-300">${item.chain}</span></td>
+                    <td class="p-3.5 text-right">
+                        <button onclick="switchTab('swap')" class="px-3 py-1 rounded-lg bg-phantom/10 text-phantom hover:bg-phantom hover:text-slate-950 font-bold transition-all">Swap</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterScreener() {
+            const search = document.getElementById('screenerSearch').value.toLowerCase();
+            const filter = document.getElementById('screenerFilter').value;
+            const rows = document.querySelectorAll('#screenerTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const matchesSearch = text.includes(search);
+                row.style.display = matchesSearch ? '' : 'none';
+            });
+        }
+
+        // Prediction Market Cards
+        const predictionData = [
+            { id: 1, title: 'Will Solana Reach $250 in Q4 2026?', volume: '$420,000', yesOdds: '68%', noOdds: '32%' },
+            { id: 2, title: 'Federal Reserve Rate Cut in Next FOMC?', volume: '$890,000', yesOdds: '82%', noOdds: '18%' },
+            { id: 3, title: 'Bitcoin Market Cap Exceeds Gold by 2027?', volume: '$1.2M', yesOdds: '41%', noOdds: '59%' }
+        ];
+
+        function renderPredictionDesk() {
+            const grid = document.getElementById('predictionGrid');
+            grid.innerHTML = '';
+            predictionData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-5 rounded-2xl border border-borderBg space-y-4 font-mono flex flex-col justify-between';
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Volume: ${item.volume}</span>
+                        <h3 class="font-bold text-white text-sm leading-snug">${item.title}</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button onclick="placePredictionBet('${item.title}', 'YES')" class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-bold text-center transition-all">
+                            YES (${item.yesOdds})
+                        </button>
+                        <button onclick="placePredictionBet('${item.title}', 'NO')" class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 font-bold text-center transition-all">
+                            NO (${item.noOdds})
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // RWA Stock Cards
+        const rwaData = [
+            { symbol: 'NVDA.RWA', name: 'NVIDIA Corp', price: 124.50, change: 3.8 },
+            { symbol: 'TSLA.RWA', name: 'Tesla Inc', price: 248.20, change: -1.2 },
+            { symbol: 'AAPL.RWA', name: 'Apple Inc', price: 228.10, change: 0.9 },
+            { symbol: 'GOLD.RWA', name: 'Tether Gold', price: 2650.00, change: 1.5 }
+        ];
+
+        function renderRwaGrid() {
+            const grid = document.getElementById('rwaGrid');
+            grid.innerHTML = '';
+            rwaData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-5 rounded-2xl border border-borderBg space-y-3 font-mono';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-bold text-white text-base">${item.symbol}</span>
+                            <p class="text-[10px] text-slate-400">${item.name}</p>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 text-[10px]">24/7 Live</span>
+                    </div>
+                    <div class="flex justify-between items-baseline pt-2">
+                        <span class="text-xl font-bold text-white">$${item.price.toFixed(2)}</span>
+                        <span class="${item.change >= 0 ? 'text-emerald-400' : 'text-rose-400'} text-xs font-bold">${item.change >= 0 ? '+' : ''}${item.change}%</span>
+                    </div>
+                    <button onclick="switchTab('perps')" class="w-full py-2 rounded-xl bg-card border border-borderBg hover:border-phantom text-xs text-slate-200 font-bold transition-all">
+                        Trade 100x Perps
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Canvas Chart Drawing Logic
+        function initPerpsCanvas() {
+            const canvas = document.getElementById('perpsCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Adjust resolution
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Draw simulated Candlesticks
+            const candleWidth = 8;
+            const gap = 14;
+            const startX = 20;
+            let currentY = canvas.height / 2;
+
+            for (let i = 0; i < 30; i++) {
+                const x = startX + i * gap;
+                const change = (Math.random() - 0.48) * 30;
+                const open = currentY;
+                const close = currentY + change;
+                const high = Math.min(open, close) - Math.random() * 15;
+                const low = Math.max(open, close) + Math.random() * 15;
+
+                const isGreen = close < open;
+                ctx.strokeStyle = isGreen ? '#10b981' : '#ef4444';
+                ctx.fillStyle = isGreen ? '#10b981' : '#ef4444';
+
+                // Wick
+                ctx.beginPath();
+                ctx.moveTo(x + candleWidth / 2, high);
+                ctx.lineTo(x + candleWidth / 2, low);
+                ctx.stroke();
+
+                // Body
+                ctx.fillRect(x, Math.min(open, close), candleWidth, Math.abs(close - open) || 2);
+
+                currentY = close;
+            }
+        }
+
+        // Perps Executions
+        function setPerpType(type) {
+            perpType = type;
+            const longBtn = document.getElementById('perpLongBtn');
+            const shortBtn = document.getElementById('perpShortBtn');
+            if (type === 'LONG') {
+                longBtn.className = 'flex-1 py-2 rounded-lg font-bold text-xs bg-emerald-500 text-slate-950';
+                shortBtn.className = 'flex-1 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white';
+            } else {
+                shortBtn.className = 'flex-1 py-2 rounded-lg font-bold text-xs bg-rose-500 text-slate-950';
+                longBtn.className = 'flex-1 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white';
+            }
+        }
+
+        function executePerpOrder() {
+            showToast(`${perpType} Order Executed on SOL-PERP!`);
+        }
+
+        function closePerpPosition() {
+            showToast('Position closed. Realized PnL: +$261.90');
+        }
+
+        // Prediction Wager
+        function placePredictionBet(title, side) {
+            showToast(`Wager placed: ${side} on "${title.substring(0, 20)}..."`);
+        }
+
+        // AI Auditor Engine
+        function runAuditScan() {
+            const input = document.getElementById('contractScanInput').value;
+            if (!input) {
+                showToast('Please enter a contract address!');
+                return;
+            }
+            document.getElementById('auditResultCard').classList.remove('hidden');
+            document.getElementById('auditAddress').innerText = `CA: ${input}`;
+            showToast('Contract Audit Completed: Score 94/100');
+        }
+
+        // Swap Engine
+        function calcSwapQuote() {
+            const pay = parseFloat(document.getElementById('swapPayAmt').value) || 0;
+            const receive = pay * 192.45;
+            document.getElementById('swapReceiveAmt').value = receive.toFixed(2);
+        }
+
+        function executeSwap() {
+            showToast('Swap executed successfully via Jupiter Router!');
+        }
+
+        function reverseSwapTokens() {
+            showToast('Tokens reversed');
+        }
+
+        function toggleSwapSlippage() {
+            showToast('Slippage set to 0.5%');
+        }
+
+        // Treasury Owner Toggle
+        function toggleOwnerRole() {
+            isOwnerSimulated = !isOwnerSimulated;
+            const btn = document.getElementById('toggleOwnerBtn');
+            const actions = document.getElementById('treasuryOwnerActions');
+            if (isOwnerSimulated) {
+                btn.innerText = 'Simulate Owner';
+                btn.className = 'px-3 py-1 rounded-lg bg-phantom/20 text-phantom font-bold hover:bg-phantom/30 transition-all';
+                actions.classList.remove('opacity-50', 'pointer-events-none');
+                showToast('Switched to Owner Access View');
+            } else {
+                btn.innerText = 'Simulate Guest';
+                btn.className = 'px-3 py-1 rounded-lg bg-card text-slate-400 font-bold hover:bg-borderBg transition-all';
+                actions.classList.add('opacity-50', 'pointer-events-none');
+                showToast('Switched to Guest Access View');
+            }
+        }
+
+        function withdrawTreasuryFees() {
+            showToast('Revenue withdrawn to 5uPo...H2dK');
+        }
+
+        function updateFeeRates() {
+            showToast('Fee structure updated successfully!');
+        }
+
+        function triggerStakeModal() {
+            showToast('SOL Staking APY 8.2% Active');
+        }
+
+        // Modals & Toasts
+        function showReceiveModal() {
+            document.getElementById('receiveModal').classList.remove('hidden');
+        }
+
+        function closeReceiveModal() {
+            document.getElementById('receiveModal').classList.add('hidden');
+        }
+
+        function copyDepositAddr() {
+            navigator.clipboard.writeText('5uPoJyq4bceJxaCWrx9q5zqvUJ47XRhQ9kgciojxH2dK');
+            showToast('Address copied to clipboard!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
